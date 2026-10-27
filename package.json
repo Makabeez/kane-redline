@@ -1,0 +1,10 @@
+{
+  "name": "kane-redline",
+  "version": "0.1.0",
+  "description": "Kane CLI as a red team inside the coding-agent loop: adversarial cases, frozen exploits, free replays.",
+  "type": "module",
+  "bin": { "redline": "bin/redline.mjs" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
