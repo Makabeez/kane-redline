@@ -7,7 +7,12 @@ import { appendFileSync, mkdirSync, readdirSync, readFileSync, statSync, existsS
 import { basename, dirname, join, resolve, relative } from 'node:path';
 import { summarize, classify, settle } from './triage.mjs';
 
-const KANE = () => process.env.REDLINE_KANE_BIN || 'kane-cli';
+// kane-cli is often installed in a user npm prefix that non-login shells don't put on PATH.
+const KANE = () => process.env.REDLINE_KANE_BIN
+  || [join(process.env.HOME ?? '', '.npm-global', 'bin', 'kane-cli')].find((p) => existsSync(p))
+  || 'kane-cli';
+// A reproduction run may exceed the cap by this much: a candidate must never go unconfirmed for budget reasons.
+const REPRO_ALLOWANCE = 25;
 const ENV = () => ({ ...process.env, KANE_CLI_USER_AGENT: 'kane-redline' });
 
 // All *_test.md under a file or directory (recursive), skipping Kane's own output folders.
@@ -63,7 +68,8 @@ export async function runCases({ target, url, targetName = 'app', maxCredits = 6
     const attempts = [];
     let last;
     for (let attempt = 1; attempt <= 2; attempt++) {
-      if (spent >= maxCredits) { log(`credit cap reached (${spent.toFixed(2)} ≥ ${maxCredits}), stopping`); return done(2); }
+      const cap = attempt === 1 ? maxCredits : maxCredits + REPRO_ALLOWANCE;
+      if (spent >= cap) { log(`credit cap reached (${spent.toFixed(2)} ≥ ${cap}), stopping`); return done(2); }
       const r = await runOne(file, url, log);
       last = r;
       spent += r.credits_spent ?? r.credits_reported ?? 0;

@@ -6,10 +6,12 @@ export function summarize(events) {
   const runEnds = events.filter((e) => e.type === 'run_end');
   const mdDone = events.filter((e) => e.type === 'test_md_done').pop();
   const codes = runEnds.map((e) => Number(e.result_code)).filter((n) => !Number.isNaN(n));
-  const verdicts = runEnds.map((e) => e.verdict).filter(Boolean);
+  // Verdicts come from the WORST run_end only: a healed setup step can carry an automation
+  // verdict (e.g. locator_rot) while the assertion step itself is a confirmed product bug.
   const credits = runEnds.reduce((s, e) => s + (Number(e.credits_consumed) || 0)
     + (Number(e.verdict?.credits_consumed) || 0), 0);
   const worst = runEnds.slice().sort((a, b) => rank(b.result_code) - rank(a.result_code))[0];
+  const v = worst?.verdict ?? null;
   return {
     overall: mdDone?.overall_status ?? worst?.status ?? null,
     codes,
@@ -17,9 +19,10 @@ export function summarize(events) {
     reason_code: worst?.reason_code ?? null,
     reason: worst?.reason ?? null,
     one_liner: worst?.one_liner ?? null,
-    verdict_family: verdicts.find((v) => v.family)?.family ?? null,
-    verdict_category: verdicts.find((v) => v.category)?.category ?? null,
-    verdict_confirmed: verdicts.some((v) => v.confirmed === true),
+    verdict_family: v?.family ?? null,
+    verdict_category: v?.category ?? null,
+    verdict_confirmed: v?.confirmed === true,
+    product_bug: /confirmed_product_bug/.test(worst?.reason_code ?? '') || v?.family === 'product_bug',
     session_id: mdDone?.session_id ?? null,
     run_dir: worst?.run_dir ?? null,
     credits_reported: round4(credits),
@@ -42,6 +45,7 @@ export function classify(s) {
   if (s.codes.includes(560)) return 'infra_credits';
   if (s.codes.some((c) => c >= 500 && c < 700)) return 'infra';
   if (s.codes.some((c) => c >= 700 && c < 800)) {
+    if (s.product_bug) return 'exploit_candidate'; // Kane's own reason code wins
     return s.verdict_family === 'automation_bug' ? 'inconclusive' : 'exploit_candidate';
   }
   if (s.codes.some((c) => c >= 300 && c < 500)) return 'inconclusive';

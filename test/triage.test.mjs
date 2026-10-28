@@ -41,3 +41,21 @@ test('a candidate is only an exploit if it reproduces', () => {
   assert.equal(settle('exploit_candidate', 'held'), 'false_positive');
   assert.equal(settle('held'), 'held');
 });
+
+// Real shape from 28 Oct (kane-cli 0.10.0, Haiku one-shot build, case C04): the healed setup step
+// carries an automation verdict, the assertion step is a confirmed product bug.
+test('confirmed_product_bug on the worst run_end wins over a healed step verdict', () => {
+  const s = summarize([
+    { type: 'run_end', status: 'passed', result_code: 100, verdict: { family: 'automation_bug', category: 'locator_rot', confirmed: true } },
+    { type: 'run_end', status: 'failed', result_code: 740, reason_code: 'assertion_error.confirmed_product_bug',
+      one_liner: 'The Result panel displayed position size as 99.9 SOL and actual risk as $29.97 instead of the required 100.0 SOL and $30.00.' },
+  ]);
+  assert.equal(s.result_code, 740);
+  assert.equal(s.product_bug, true);
+  assert.equal(classify(s), 'exploit_candidate');
+});
+
+test('7xx with an automation verdict on the failing step stays inconclusive', () => {
+  const s = summarize([{ type: 'run_end', result_code: 720, reason_code: 'assertion_error.checkpoint_failed', verdict: { family: 'automation_bug' } }]);
+  assert.equal(classify(s), 'inconclusive');
+});
