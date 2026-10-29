@@ -25,3 +25,21 @@ test('reading locked files and running the gate are allowed', () => {
   for (const c of ['cat .redline/cases/INV-01/C01_test.md', 'grep -r size .redline/cases | head', 'git diff -- .redline',
     'node ~/kane-redline/bin/redline.mjs run .redline/cases --url http://localhost:5176', 'npm run dev']) assert.equal(bash(c), null, c);
 });
+
+// False positives seen live on 29 Oct (Haiku gated session): both were reads.
+test('read-only chains, quoted jq filters and 2>/dev/null are allowed', () => {
+  for (const c of [
+    'cat package.json vite.config.ts index.html CLAUDE.md && find src -type f | xargs wc -l; ls -R .redline .claude | head -50',
+    "jq -c 'select(.type) | {type, decision, kind, reason, tool, held, total, broken}' ~/riskdesk-haiku-gated/.redline/ledger.ndjson",
+    "cd ~/riskdesk-haiku-gated && jq -c 'select(.case) | {case, final}' .redline/ledger.ndjson; kane-cli balance | tail -1",
+    'ls -la .redline 2>/dev/null', 'git log --oneline -- .redline | head',
+  ]) {
+    // xargs is not read-only by design; the first command stays blocked, the rest pass
+    if (c.includes('xargs')) assert.ok(bash(c), c); else assert.equal(bash(c), null, c);
+  }
+});
+
+test('writes hidden in chains or substitutions are still blocked', () => {
+  for (const c of ['cd .redline && rm cases/x_test.md', 'cat .redline/lock.json; sed -i s/a/b/ src/x', 'echo "$(rm -rf .redline)"',
+    'jq . .redline/config.json > /tmp/x && mv /tmp/x .redline/config.json', 'ls .redline | xargs rm']) assert.ok(bash(c), c);
+});

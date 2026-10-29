@@ -50,9 +50,53 @@ const PROTECTED = [/(^|\/)\.redline(\/|$)/, /_test\.md$/, /(^|\/)\.claude\/setti
 const isProtectedPath = (rel) => PROTECTED.some((re) => re.test(rel.replace(/\\/g, '/')));
 const MENTIONS = /\.redline|_test\.md|\.claude\/settings/;
 const READ_ONLY = new Set(['cat', 'less', 'more', 'head', 'tail', 'grep', 'egrep', 'rg', 'jq', 'wc', 'ls', 'stat',
-  'diff', 'sha256sum', 'md5sum', 'file', 'find', 'tree', 'echo']);
+  'diff', 'sha256sum', 'md5sum', 'file', 'find', 'tree', 'echo', 'cd', 'pwd', 'sort', 'uniq', 'cut', 'column', 'true']);
+
+// Quote-aware split of a shell command into segments on unquoted | || && ; and newlines.
+// Also reports unquoted redirections and command substitutions (which run even inside double quotes).
+export function shellSegments(cmd) {
+  const segs = []; let cur = ''; let q = null; const flags = { redirect: false, subst: false };
+  for (let i = 0; i < cmd.length; i++) {
+    const ch = cmd[i], nx = cmd[i + 1];
+    if (q === "'") { cur += ch; if (ch === "'") q = null; continue; }
+    if (ch === '\\' && nx !== undefined) { cur += ch + nx; i++; continue; }
+    if (q === '"') {
+      if (ch === '`' || (ch === '$' && nx === '(')) flags.subst = true;
+      cur += ch; if (ch === '"') q = null; continue;
+    }
+    if (ch === "'" || ch === '"') { q = ch; cur += ch; continue; }
+    if (ch === '`' || (ch === '$' && nx === '(')) flags.subst = true;
+    if (ch === '>') {
+      // allowed: 2>/dev/null, >/dev/null, 2>&1, &>/dev/null
+      const rest = cmd.slice(i + 1).replace(/^>/, '').trimStart();
+      if (!/^(\/dev\/null\b|&[12]\b)/.test(rest)) flags.redirect = true;
+    }
+    if (ch === '|' || ch === ';' || ch === '\n' || (ch === '&' && nx === '&')) {
+      segs.push(cur.trim()); cur = '';
+      if ((ch === '|' && nx === '|') || (ch === '&' && nx === '&')) i++;
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur.trim()) segs.push(cur.trim());
+  return { segments: segs.filter(Boolean), ...flags };
+}
+
+const firstWord = (seg) => seg.split(/\s+/).find((w) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(w)) ?? '';
+function readOnlySegment(seg) {
+  const w = firstWord(seg).replace(/^.*\//, '');
+  if (/(^|\s)(-i\b|--in-place|-delete\b|-exec(dir)?\b|-fprint)/.test(seg)) return false;
+  if (READ_ONLY.has(w)) return true;
+  if (w === 'git') return /\bgit\s+(diff|log|show|status|blame|ls-files)\b/.test(seg);
+  if (w === 'kane-cli') return /\bkane-cli\s+(balance|whoami|--version|--help)\b/.test(seg);
+  if (w === 'node') return /redline\.mjs\s+(run|verify)\b/.test(seg);
+  if (w === 'redline') return /\bredline\s+(run|verify)\b/.test(seg);
+  return false;
+}
 
 // Returns null if allowed, or a reason string if the call must be blocked.
+// A shell command that mentions a locked path must be read-only in EVERY segment
+// (so "cd .redline && rm x" cannot slip through). The lock hashes are the backstop.
 export function tamperCheck(project, toolName, input) {
   const path = input?.file_path ?? input?.notebook_path ?? input?.path;
   if (path && /^(Write|Edit|MultiEdit|NotebookEdit)$/.test(toolName)) {
@@ -61,12 +105,11 @@ export function tamperCheck(project, toolName, input) {
     return null;
   }
   if (toolName === 'Bash' && typeof input?.command === 'string' && MENTIONS.test(input.command)) {
-    const c = input.command;
-    if (/redline\.mjs\s+(run|verify)\b|\bredline\s+(run|verify)\b/.test(c) && !/[>;`]|\$\(|&&|\|\|/.test(c)) return null;
-    if (/[>;`]|\$\(|&&|\|\||\s-i\b|--in-place|\btee\b|-delete\b|-exec\b/.test(c)) return 'shell command can write to locked Redline files';
-    const bad = c.split('|').map((s) => s.trim().split(/\s+/)[0]).find((w) => !READ_ONLY.has(w) && w !== 'git');
-    if (bad) return `"${bad}" on locked Redline files is not allowed (read-only commands only)`;
-    if (/\bgit\b/.test(c) && !/\bgit\s+(diff|log|show|status|blame)\b/.test(c)) return 'git commands that can change locked Redline files are not allowed';
+    const { segments, redirect, subst } = shellSegments(input.command);
+    if (redirect) return 'shell command redirects output and can write to locked Redline files';
+    if (subst) return 'command substitution next to locked Redline files is not allowed';
+    const bad = segments.find((sg) => !readOnlySegment(sg));
+    if (bad) return `"${firstWord(bad)}" in a command that touches locked Redline files (read-only commands only)`;
     return null;
   }
   return null;
