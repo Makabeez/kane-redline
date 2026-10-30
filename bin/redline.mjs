@@ -5,6 +5,7 @@
 //   redline init --url <app> [--cases .redline/cases]     wire hooks into .claude/settings.json + lock
 //   redline lock                                          re-lock after a human adds/changes cases
 //   redline verify                                        check locked files against .redline/lock.json
+//   redline report [ledger ...] [--targets a,b]            case x build scoreboard (markdown)
 //   redline hook pre-tool-use | stop                      Claude Code hook entry points (stdin JSON)
 //
 // run exit: 0 all held · 1 exploit confirmed · 2 halted (infra/credit cap) · 3 inconclusive/false positives
@@ -14,6 +15,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runCases } from '../src/run.mjs';
 import { init, writeLock, verifyLock, preToolUseHook, stopHook } from '../src/guard.mjs';
+import { report } from '../src/report.mjs';
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
@@ -41,6 +43,12 @@ switch (argv[0]) {
     console.log(v.ok ? 'redline: lock intact' : `redline: TAMPERED\n  ${v.problems.join('\n  ')}`);
     process.exit(v.ok ? 0 : 1);
   }
+  case 'report': {
+    const files = argv.slice(1).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--targets');
+    const targets = opt('--targets')?.split(',');
+    process.stdout.write(report(files.length ? files.map((f) => resolve(f)) : [resolve(project, '.redline/ledger.ndjson')], { targets }));
+    process.exit(0);
+  }
   case 'hook': {
     const payload = JSON.parse(readFileSync(0, 'utf8') || '{}');
     const proj = resolve(process.env.CLAUDE_PROJECT_DIR ?? payload.cwd ?? process.cwd());
@@ -60,6 +68,6 @@ switch (argv[0]) {
 }
 
 function usage() {
-  console.error(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 10).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.error(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 11).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(64);
 }
