@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" width="960" height="220" role="img" aria-label="Redline: Kane CLI as a red team inside the coding-agent loop">
+  <style>
+    .bg{fill:#0d1117}.t{font:700 64px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#f0f6fc;letter-spacing:2px}
+    .s{font:400 20px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#8b949e}
+    .line{stroke:#ff3b30;stroke-width:4;stroke-dasharray:960;stroke-dashoffset:960;animation:draw 2.4s ease-out forwards,pulse 2.4s 2.4s ease-in-out infinite}
+    .ok{font:700 18px ui-monospace,monospace;fill:#3fb950;opacity:0;animation:fade .6s 2.6s forwards}
+    .bad{font:700 18px ui-monospace,monospace;fill:#ff3b30;opacity:0;animation:fade .6s 1.4s forwards}
+    @keyframes draw{to{stroke-dashoffset:0}} @keyframes pulse{50%{opacity:.45}} @keyframes fade{to{opacity:1}}
+  </style>
+  <rect class="bg" width="960" height="220" rx="16"/>
+  <text class="t" x="48" y="92">redline</text>
+  <text class="s" x="50" y="128">your agent says it's done. kane tries to break it.</text>
+  <line class="line" x1="48" y1="152" x2="912" y2="152"/>
+  <text class="bad" x="50" y="190">✗ 99.9 SOL  (expected 100.0)</text>
+  <text class="ok" x="520" y="190">✓ 34/34 locked cases held</text>
+</svg>

@@ -1,10 +1,13 @@
 {
   "name": "kane-redline",
-  "version": "0.1.0",
-  "description": "Kane CLI as a red team inside the coding-agent loop: adversarial cases, frozen exploits, free replays.",
+  "version": "0.2.0",
+  "description": "Kane CLI as a red team inside the coding-agent loop: adversarial browser cases with exact oracles, a Stop gate the agent can't talk past, free replays.",
   "type": "module",
-  "bin": { "redline": "bin/redline.mjs" },
+  "bin": { "kane-redline": "bin/redline.mjs", "redline": "bin/redline.mjs" },
+  "files": ["bin", "src", "README.md", "LICENSE"],
   "scripts": { "test": "node --test" },
   "engines": { "node": ">=20" },
+  "repository": { "type": "git", "url": "git+https://github.com/Makabeez/kane-redline.git" },
+  "keywords": ["kane-cli", "testmu", "claude-code", "hooks", "browser-testing", "ai-agents", "verification"],
   "license": "MIT"
 }

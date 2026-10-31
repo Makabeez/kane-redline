@@ -2,7 +2,8 @@
 import { readFileSync, existsSync } from 'node:fs';
 
 const MARK = { held: '✅ held', exploit_confirmed: '❌ **exploit**', false_positive: '⚠️ false positive',
-  inconclusive: '❔ inconclusive', infra: '🔌 infra', infra_credits: '🔌 no credits' };
+  inconclusive: '❔ inconclusive', infra: '🔌 infra', infra_credits: '🔌 no credits',
+  unreproduced_inconclusive: '❔ unreproduced', exploit_candidate_unconfirmed: '❔ unconfirmed' };
 
 export function report(ledgers, { targets: only } = {}) {
   const cells = new Map(); const order = []; const tgts = []; const credits = new Map(); const meta = new Map();
