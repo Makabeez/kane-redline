@@ -128,7 +128,7 @@ async function runOne(file, url, log) {
     duration_s: Math.round((Date.now() - t0) / 100) / 10,
     balance_before: before, balance_after: after,
     credits_spent: before != null && after != null ? Math.round((before - after) * 1e4) / 1e4 : null,
-    evidence: stderr.match(/evidence serve (\S+)/)?.[1] ?? null,
+    evidence: stderr.match(/evidence serve ([^\s`]+)/)?.[1] ?? null,
     stderr_tail: triage.startsWith('infra') ? stderr.trim().split('\n').slice(-3).join(' | ') : undefined,
   };
 }

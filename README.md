@@ -104,6 +104,7 @@ redline report                               # scoreboard from .redline/ledger.n
 |---|---|---|
 | Authoring a case (first run, Kane plans every step) | 38–50 credits, ~100 s | 127 matrix runs + 10 baseline runs |
 | Replaying a learned case | **0.00 credits, ~16 s** (31 replays) | `riskdesk/.redline/ledger.ndjson` |
+| Judge path from a fresh clone of the public repo (31 Oct) | **34 / 34 held** · 25 replays at 0.00 credits, 9 re-healed one step · **50.77 credits total** (authoring the suite cost ~1,650) | [riskdesk README](https://github.com/Makabeez/riskdesk#judge-path-one-command-after-kane-cli-login) |
 | Replays survive | a copied folder · the agent re-laying out the form · a new field | 26–28 Oct ledger |
 | Replays don't survive | a different app with different markup: Kane re-heals the changed steps (15–20 credits) | Haiku gated session |
 | Exit code vs truth | spike run exited `1` ("assertion failed"); `result_code` was `320 stuck.dag_cycle` | 26 Oct spike |
