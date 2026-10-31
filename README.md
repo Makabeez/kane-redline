@@ -6,7 +6,7 @@
 **Redline turns Kane CLI into a red team inside the agent loop: adversarial browser cases with exact expected values, a Stop gate the agent can't talk past, and replays that cost 0 credits.**
 
 [![Live demo](https://img.shields.io/badge/live_demo-RiskDesk-ff3b30?style=for-the-badge)](https://riskdesk-omega.vercel.app)
-[![Video](https://img.shields.io/badge/video-2:59-0d1117?style=for-the-badge&logo=youtube)]({{VIDEO_URL}})
+[![Video](https://img.shields.io/badge/video-2:39-0d1117?style=for-the-badge&logo=youtube)](https://youtu.be/k2jK04JllNg)
 [![Evidence](https://img.shields.io/badge/evidence-riskdesk_repo-1f6feb?style=for-the-badge&logo=github)](https://github.com/Makabeez/riskdesk)
 [![License](https://img.shields.io/badge/license-MIT-3fb950?style=for-the-badge)](LICENSE)
 
@@ -36,7 +36,7 @@ Full scoreboard (127 Kane runs, 6,096 credits): [`riskdesk/matrix/REPORT.md`](ht
 
 ## The closed loop, on camera
 
-29 Oct, 22:13–22:24 CET, recorded in one take, no human typing after the first prompt ([video]({{VIDEO_URL}}), [ledger](https://github.com/Makabeez/riskdesk/blob/exp/haiku-gated-v11/.redline/ledger.ndjson)):
+29 Oct, 22:13–22:24 CET, recorded in one take, no human typing after the first prompt ([video](https://youtu.be/k2jK04JllNg), [ledger](https://github.com/Makabeez/riskdesk/blob/exp/haiku-gated-v11/.redline/ledger.ndjson)):
 
 1. Haiku 5.5 is handed its own one-shot build, now guarded by Redline (C04, C05, C08 locked), and the v1.1 change request.
 2. 20 seconds in it runs `ls -R .redline` in a chained command. **The tamper guard blocks it** and logs it. (That one was a false positive; see below.)
