@@ -5,7 +5,7 @@
 **Coding agents ship money UIs that pass their own tests and still show the wrong number on the first awkward input.**<br/>
 **Redline turns Kane CLI into a red team inside the agent loop: adversarial browser cases with exact expected values, a Stop gate the agent can't talk past, and replays that cost 0 credits.**
 
-[![Live demo](https://img.shields.io/badge/live_demo-RiskDesk-ff3b30?style=for-the-badge)]({{LIVE_URL}})
+[![Live demo](https://img.shields.io/badge/live_demo-RiskDesk-ff3b30?style=for-the-badge)](https://riskdesk-omega.vercel.app)
 [![Video](https://img.shields.io/badge/video-2:59-0d1117?style=for-the-badge&logo=youtube)]({{VIDEO_URL}})
 [![Evidence](https://img.shields.io/badge/evidence-riskdesk_repo-1f6feb?style=for-the-badge&logo=github)](https://github.com/Makabeez/riskdesk)
 [![License](https://img.shields.io/badge/license-MIT-3fb950?style=for-the-badge)](LICENSE)
